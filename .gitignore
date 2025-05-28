@@ -1,0 +1,17 @@
+# Rust build files
+/target/
+**/*.rs.bk
+
+# Environment
+.env
+
+# IDEs/editors
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+
+# Temp / Testing
+all_code.rs
