@@ -1,4 +1,4 @@
-use crate::bot::{events::on_event, registry::all_commands, Data, Error};
+use crate::bot::{error::BotError, events::on_event, registry::all_commands, Data, Error};
 use poise::serenity_prelude::GuildId;
 use std::{sync::Arc, time::Duration};
 use tracing::{error, info};
@@ -26,7 +26,8 @@ pub async fn create_framework(guild_id: GuildId) -> poise::Framework<Data, Error
         .setup(move |ctx, ready, framework| {
             Box::pin(async move {
                 info!("Bot is ready! Logged in as: {}", ready.user.name);
-                poise::builtins::register_in_guild(ctx, &framework.options().commands, guild_id).await?;
+                poise::builtins::register_in_guild(ctx, &framework.options().commands, guild_id).await
+                    .map_err(|e| BotError::Other(anyhow::anyhow!("Registering commands failed: {}", e)))?;
                 Ok(Data {})
             })
         })

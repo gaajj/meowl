@@ -1,5 +1,5 @@
-use crate::bot::{create_framework, Data};
-use crate::bot::error::{env::EnvError, Error};
+use crate::bot::Data;
+use crate::bot::error::{BotError, Error};
 use dotenvy::dotenv;
 use poise::serenity_prelude as serenity;
 
@@ -12,12 +12,12 @@ pub fn load_env() -> Result<(String, serenity::GuildId), Error> {
     let token = get_env_var("DISCORD_TOKEN")?;
     let guild_id = get_env_var("GUILD_ID")?
         .parse::<u64>()
-        .map_err(|_| EnvError::MissingOrInvalid("Invalid GUILD_ID".to_string()))?;
+        .map_err(|_| BotError::EnvVar("Invalid GUILD_ID".to_string()))?;
     Ok((token, serenity::GuildId::from(guild_id)))
 }
 
-pub fn get_env_var(key: &str) -> Result<String, EnvError> {
-    std::env::var(key).map_err(|_| EnvError::MissingOrInvalid(key.to_string()))
+pub fn get_env_var(key: &str) -> Result<String, Error> {
+    std::env::var(key).map_err(|_| BotError::EnvVar(key.to_string()))
 }
 
 pub async fn start_bot(token: String, framework: poise::Framework<Data, Error>) -> Result<(), Error> {
@@ -25,8 +25,11 @@ pub async fn start_bot(token: String, framework: poise::Framework<Data, Error>) 
 
     let mut client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)
-        .await?;
+        .await
+        .map_err(|e| BotError::Other(anyhow::anyhow!("Failed to build Discord client: {}", e)))?;
 
-    client.start().await?;
+    client.start().await
+        .map_err(|e| BotError::Other(anyhow::anyhow!("Failed to start client: {}", e)))?;
+
     Ok(())
 }
