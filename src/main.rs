@@ -5,7 +5,7 @@ mod commands;
 mod components;
 mod startup;
 
-use startup::{init_tracing, load_env, start_bot};
+use startup::{init_tracing, load_config, start_bot};
 use bot::create_framework;
 use bot::error::Error;
 
@@ -13,8 +13,8 @@ use bot::error::Error;
 async fn main() -> Result<(), Error> {
     init_tracing();
 
-    let (token, guild_id) = load_env()?;
-    let framework = create_framework(guild_id).await;
+    let config = load_config()?;
+    let framework = create_framework(config.guild_id, config.prefix.clone()).await;
 
-    start_bot(token, framework).await
+    start_bot(config.token, framework).await
 }

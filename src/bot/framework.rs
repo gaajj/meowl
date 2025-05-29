@@ -3,12 +3,12 @@ use poise::serenity_prelude::GuildId;
 use std::{sync::Arc, time::Duration};
 use tracing::{error, info};
 
-pub async fn create_framework(guild_id: GuildId) -> poise::Framework<Data, Error> {
+pub async fn create_framework(guild_id: GuildId, prefix: String) -> poise::Framework<Data, Error> {
     poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: all_commands(),
             prefix_options: poise::PrefixFrameworkOptions {
-                prefix: Some(".".into()),
+                prefix: Some(prefix),
                 edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(Duration::from_secs(3600)))),
                 ..Default::default()
             },

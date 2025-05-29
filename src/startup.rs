@@ -2,18 +2,33 @@ use crate::bot::Data;
 use crate::bot::error::{BotError, Error};
 use dotenvy::dotenv;
 use poise::serenity_prelude as serenity;
+use poise::serenity_prelude::GuildId;
+
+#[derive(Debug, Clone)]
+pub struct AppConfig {
+    pub token: String,
+    pub guild_id: GuildId,
+    pub prefix: String,
+}
 
 pub fn init_tracing() {
     tracing_subscriber::fmt::init();
 }
 
-pub fn load_env() -> Result<(String, serenity::GuildId), Error> {
+pub fn load_config() -> Result<AppConfig, Error> {
     dotenv().ok();
-    let token = get_env_var("DISCORD_TOKEN")?;
-    let guild_id = get_env_var("GUILD_ID")?
+
+    let token: String = get_env_var("DISCORD_TOKEN")?;
+    let guild_id: GuildId = GuildId::from(get_env_var("GUILD_ID")?
         .parse::<u64>()
-        .map_err(|_| BotError::EnvVar("Invalid GUILD_ID".to_string()))?;
-    Ok((token, serenity::GuildId::from(guild_id)))
+        .map_err(|_| BotError::EnvVar("Invalid GUILD_ID".to_string()))?);
+    let prefix: String = get_env_var("BOT_PREFIX")?;
+
+    Ok(AppConfig {
+        token,
+        guild_id,
+        prefix,
+    })
 }
 
 pub fn get_env_var(key: &str) -> Result<String, Error> {
